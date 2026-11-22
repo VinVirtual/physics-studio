@@ -27,6 +27,10 @@
     {
       "t": 0.0,
       "type": "release"
+    },
+    {
+      "t": 2.804891,
+      "type": "period"
     }
   ],
   "contacts": {

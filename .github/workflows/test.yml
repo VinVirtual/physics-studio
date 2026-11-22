@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 20
     env:
       MUJOCO_GL: egl
+      PS_REQUIRE_GL: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -22,12 +23,12 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
-      # Mesa's EGL so the rendering tests run on the CPU; if it is not usable they skip, and say so.
+      # Mesa's EGL so the rendering tests run on the CPU; PS_REQUIRE_GL makes them fail rather than skip.
       - name: Install OpenGL (Mesa EGL)
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1-mesa-dri
       - name: Install Python packages
         run: python -m pip install mujoco==4.0.1 numpy==2.5.5 pillow==13.0.0 imageio-ffmpeg==0.8.1 pytest==9.2.0
       - name: Check the environment
-        run: PHYSICS_STUDIO_PYTHON=python ./check_env.sh || true
+        run: PHYSICS_STUDIO_PYTHON=python ./check_env.sh --no-voice
       - name: Unit tests
         run: PHYSICS_STUDIO_PYTHON=python ./physics-studio test

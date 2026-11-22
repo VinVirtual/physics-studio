@@ -144,12 +144,16 @@ def auto_script(recipe: dict, log: dict) -> list[dict]:
                 lines.append({"at": "event:grasp", "say": text})
             else:
                 lines.append({"at": "event:close", "say": f"The fingers close, but never get a grip on the {noun}."})
-            if _event(log, "let_go", obj["id"]) or _event(log, "open"):
-                lines.append({"at": "event:open" if _event(log, "open") else "event:let_go",
+            if g and _event(log, "let_go", obj["id"]):      # only what was really carried can be set down
+                lines.append({"at": "event:let_go",
                               "say": f"It is set down {_cm(task['final_error_m'])} centimetres from the target."})
         else:
-            lines.append({"at": "event:push", "say": f"The {noun} slides {_cm(task['moved_m'])} centimetres "
-                                                     f"and stops {_cm(task['final_error_m'])} centimetres from the target."})
+            if _event(log, "contact", obj["id"]):
+                lines.append({"at": "event:contact", "say": f"The {noun} slides {_cm(task['moved_m'])} centimetres "
+                                                            f"and stops {_cm(task['final_error_m'])} centimetres from the target."})
+            else:
+                lines.append({"at": "event:push" if _event(log, "push") else "end",
+                              "say": f"The arm never touches the {noun}."})
         lines.append({"at": "end", "say": _result_line(task)})
     elif kind == "drop":
         n = len(log["objects"])
@@ -169,7 +173,7 @@ def auto_script(recipe: dict, log: dict) -> list[dict]:
                 else f"A double pendulum, {say_number(p['length'], 2)} metres per link,")
         lines.append({"at": "start", "say": f"{what} is released from {say_number(p['angle_deg'])} degrees."})
         if task.get("measured_period_s"):
-            lines.append({"at": min(log["duration_s"] * 0.4, task["measured_period_s"] * 1.2),
+            lines.append({"at": "event:period",     # spoken once two full swings have been timed
                           "say": f"Measured period: {say_number(task['measured_period_s'], 2)} seconds. "
                                  f"The small-angle formula gives {say_number(task['small_angle_period_s'], 2)} seconds."})
         else:

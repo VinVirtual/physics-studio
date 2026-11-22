@@ -81,7 +81,7 @@ def _load_urdf(path: Path, base: Path) -> tuple[ET.Element, AssetStore]:
     text = ET.tostring(root, encoding="unicode")
     try:
         model = mujoco.MjModel.from_xml_string(text, assets=store.files)
-    except ValueError as e:
+    except (ValueError, RuntimeError) as e:
         raise RecipeError(f"MuJoCo could not read {path.name}: {str(e).strip()[:400]}") from None
     with tempfile.TemporaryDirectory() as td:
         out = Path(td) / "robot.xml"

@@ -20,6 +20,7 @@ MAX_OBJECTS = 12
 MAX_NARRATION_LINES = 16
 MAX_LINE_CHARS = 240
 MAX_STEPS = 60_000
+MAX_VIDEO_S = 120
 TASKS = ("drop", "push", "pick_place", "pendulum", "cartpole")
 FORMATS = ("landscape", "vertical", "square")
 SHAPES = ("box", "sphere", "cylinder")
@@ -46,6 +47,14 @@ DEFAULT_DURATION = {"drop": 4.0, "push": 6.0, "pick_place": 8.0, "pendulum": 6.0
 ROBOT_TASKS = ("push", "pick_place")
 
 _MISSING = object()
+
+
+def _finite(x) -> bool:
+    """math.isfinite that answers False (instead of raising) for integers too big for a float."""
+    try:
+        return math.isfinite(x)
+    except OverflowError:
+        return False
 
 
 class _Checker:
@@ -76,7 +85,8 @@ class _Checker:
         if isinstance(v, bool) or not isinstance(v, (int, float)) or (integer and not isinstance(v, int)):
             self.err(f"{path}.{key}", f"must be {'a whole number' if integer else 'a number'}, got {json.dumps(v)[:40]}")
             return default if default is not _MISSING else None
-        if not math.isfinite(v) or v < lo or v > hi:
+        ok = _finite(v) and lo <= v <= hi
+        if not ok:
             self.err(f"{path}.{key}", f"must be between {lo} and {hi}, got {v}")
             return default if default is not _MISSING else None
         return v
@@ -95,7 +105,7 @@ class _Checker:
             return None
         out = []
         for i, x in enumerate(v):
-            if isinstance(x, bool) or not isinstance(x, (int, float)) or not math.isfinite(x) or x < lo or x > hi:
+            if isinstance(x, bool) or not isinstance(x, (int, float)) or not _finite(x) or x < lo or x > hi:
                 self.err(f"{path}.{key}[{i}]", f"must be a number between {lo} and {hi}, got {json.dumps(x)[:40]}")
                 return None
             out.append(float(x))
@@ -166,6 +176,8 @@ def parse_json(text: str) -> Any:
         raise RecipeError("recipe JSON is nested too deeply") from None
     except json.JSONDecodeError as e:
         raise RecipeError(f"recipe is not valid JSON: {e}") from None
+    except ValueError as e:      # e.g. an integer with thousands of digits
+        raise RecipeError(f"recipe has a value that cannot be read: {str(e)[:120]}") from None
 
 
 def load_recipe(path: str | Path) -> dict:
@@ -240,7 +252,7 @@ def _robot(c: _Checker, r: Any) -> dict | None:
         c.err(f"{path}.home", "must be an object of at most 16 joint name -> angle (radians)")
     else:
         for k, v in home.items():
-            if len(k) > 80 or isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or abs(v) > 6.3:
+            if len(k) > 80 or isinstance(v, bool) or not isinstance(v, (int, float)) or not _finite(v) or abs(v) > 6.3:
                 c.err(f"{path}.home.{k[:40]}", "must be a number between -6.3 and 6.3")
             else:
                 out["home"][k] = float(v)
@@ -405,12 +417,15 @@ def _narration(c: _Checker, n: Any) -> Any:
         if isinstance(at, str):
             if not ANCHOR_RE.fullmatch(at):
                 c.err(f"{p}.at", 'must be "start", "end", "event:<type>" or a time in seconds')
-        elif isinstance(at, bool) or not isinstance(at, (int, float)) or not math.isfinite(at) or not 0 <= at <= 60:
+        elif isinstance(at, bool) or not isinstance(at, (int, float)) or not _finite(at) or not 0 <= at <= 60:
             c.err(f"{p}.at", "a time must be between 0 and 60 seconds")
         say = c.text(line, "say", p, MAX_LINE_CHARS)
         if isinstance(say, str):
             if not say.strip():
                 c.err(f"{p}.say", "is empty")
+            if re.search(r"\d", PLACEHOLDER_RE.sub("", say)):
+                c.err(f"{p}.say", "numbers may only come from the run log through placeholders such as "
+                                  "{task.final_error_cm}; write other numbers as words if you must")
             for ph in PLACEHOLDER_RE.findall(say):
                 if not re.fullmatch(r"[a-z_][A-Za-z0-9_.]{0,60}(:[0-9]{1})?", ph):
                     c.err(f"{p}.say", f'placeholder "{{{ph[:30]}}}" must look like {{task.final_error_cm}} or {{task.final_error_cm:1}}')
@@ -478,6 +493,10 @@ def validate(raw: Any) -> dict:
                       "fps": c.choice(v, "fps", "video", FPS, default=30),
                       "speed": "auto" if v.get("speed", "auto") == "auto" else c.num(v, "speed", "video", 0.1, 4, default=1.0),
                       "hold_end": c.num(v, "hold_end", "video", 0, 10, default=1.2)}
+    vv = r["video"]
+    if isinstance(vv.get("speed"), (int, float)) and r["duration"] and vv.get("hold_end") is not None:
+        if r["duration"] / vv["speed"] + vv["hold_end"] > MAX_VIDEO_S:
+            c.err("video.speed", f"duration / speed makes a video longer than {MAX_VIDEO_S} s")
     vo = raw.get("voice", {})
     r["voice"] = {}
     if c.keys(vo, "voice", ("on", "voice", "speed", "lang")):

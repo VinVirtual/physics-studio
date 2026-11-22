@@ -2,9 +2,10 @@
 
 - they are parsed by Python's XML parser with DOCTYPE and ENTITY declarations refused, never handed
   to MuJoCo by path, so MuJoCo cannot open any file on its own;
-- every mesh, texture or height field they name is looked up inside the robot's folder only (after
+- every mesh, texture or height field they name is looked up inside the recipe's folder only (after
   following symbolic links), must have an expected extension and size, and is passed to MuJoCo as
-  bytes under a new flat name;
+  bytes under a new flat name; PNG sizes and mesh face counts are read from the file headers and
+  budgeted over the whole robot (each use counts), as are generated textures and height fields;
 - MJCF elements that load code or other files (<include>, <plugin>, <extension>, <model>, skins)
   are refused.
 """
@@ -35,6 +36,14 @@ ALLOWED_MJCF = {
 LIMITS = {("texture", "width"): 4096, ("texture", "height"): 4096, ("hfield", "nrow"): 1024, ("hfield", "ncol"): 1024}
 MAX_BODIES = 400
 MAX_ELEMENTS = 20000
+MAX_DEPTH = 64
+# totals over the whole robot, so many small things cannot add up to gigabytes inside MuJoCo
+MAX_COUNT = {"mesh": 100, "texture": 30, "hfield": 4}
+MAX_BUILTIN_TEXELS = 32_000_000      # width * height (* 6 for cube maps) over all generated textures
+MAX_HFIELD_CELLS = 2_000_000         # nrow * ncol over all height fields
+MAX_IMAGE_SIDE = 4096
+MAX_IMAGE_TEXELS = 32_000_000        # over all image files, counted per reference
+MAX_MESH_FACES = 1_500_000           # over all meshes, counted per reference
 _DECL = re.compile(r"<!\s*(DOCTYPE|ENTITY)", re.IGNORECASE)
 _ENCODING = re.compile(r"^\s*<\?xml[^>]*encoding\s*=\s*[\"']([^\"']+)", re.IGNORECASE)
 
@@ -99,11 +108,27 @@ class AssetStore:
         self.base = base
         self.files: dict[str, bytes] = {}
         self._by_path: dict[Path, str] = {}
+        self._cost: dict[str, tuple[str, int]] = {}
         self.total = 0
+        self.faces = 0
+        self.texels = 0
+
+    def _charge(self, name: str) -> None:
+        kind, n = self._cost[name]
+        if kind == "faces":
+            self.faces += n
+            if self.faces > MAX_MESH_FACES:
+                raise RecipeError(f"the robot's meshes add up to more than {MAX_MESH_FACES:,} faces "
+                                  "(each use of a mesh counts); simplify them")
+        else:
+            self.texels += n
+            if self.texels > MAX_IMAGE_TEXELS:
+                raise RecipeError(f"the robot's images add up to more than {MAX_IMAGE_TEXELS:,} pixels")
 
     def add(self, rel: str, kinds: tuple[str, ...], what: str) -> str:
         p = inside(self.base, rel, what)
         if p in self._by_path:
+            self._charge(self._by_path[p])
             return self._by_path[p]
         if p.suffix.lower() not in kinds:
             raise RecipeError(f"{what} {rel!r}: only {', '.join(kinds)} files are read")
@@ -117,18 +142,75 @@ class AssetStore:
                               f"{MAX_ASSETS_TOTAL // (1024 * 1024)} MB)")
         stem = re.sub(r"[^A-Za-z0-9_-]", "_", p.stem)[:40] or "asset"
         name = f"a{len(self.files):03d}_{stem}{p.suffix.lower()}"
-        self.files[name] = p.read_bytes()
+        data = p.read_bytes()
+        cost = ("texels", png_texels(data, rel)) if p.suffix.lower() in IMAGE_EXT else ("faces", mesh_faces(data, p.suffix.lower(), rel))
+        self.files[name] = data
         self.total += size
         self._by_path[p] = name
+        self._cost[name] = cost
+        self._charge(name)
         return name
+
+
+def png_texels(data: bytes, rel: str = "image") -> int:
+    """Width * height from the PNG header, checked before anything decodes the image."""
+    import struct
+    if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
+        raise RecipeError(f"{rel!r} is not a PNG image")
+    w, h = struct.unpack(">II", data[16:24])
+    if w == 0 or h == 0 or w > MAX_IMAGE_SIDE or h > MAX_IMAGE_SIDE:
+        raise RecipeError(f"{rel!r} is {w}x{h} pixels; at most {MAX_IMAGE_SIDE}x{MAX_IMAGE_SIDE} is read")
+    return w * h
+
+
+def mesh_faces(data: bytes, ext: str, rel: str = "mesh") -> int:
+    """Number of faces a mesh file declares (STL header count, OBJ 'f' lines, MSH header)."""
+    import struct
+    if ext == ".stl":
+        if len(data) >= 84:
+            n = struct.unpack("<I", data[80:84])[0]
+            if 84 + 50 * n == len(data):
+                return n
+        return max(1, data.count(b"facet"))   # ASCII STL (MuJoCo will refuse it with its own message)
+    if ext == ".obj":
+        return sum(1 for line in data.splitlines() if line.lstrip().startswith(b"f "))
+    if ext == ".msh":
+        if len(data) < 16:
+            raise RecipeError(f"{rel!r} is not a MuJoCo .msh file")
+        return struct.unpack("<4i", data[:16])[3]
+    return 0
 
 
 def check_mjcf_elements(root: ET.Element) -> None:
     """Refuse elements that load files or code or multiply the model, and cap sizes."""
     n = 0
+    counts = {k: 0 for k in MAX_COUNT}
+    texels = cells = 0
+    depth_stack = [(root, 0)]
+    while depth_stack:                     # nesting depth, without recursion
+        el, d = depth_stack.pop()
+        if d > MAX_DEPTH:
+            raise RecipeError(f"the robot file is nested more than {MAX_DEPTH} levels deep")
+        depth_stack.extend((ch, d + 1) for ch in el)
+    templates = {id(x) for d in root.iter("default") for x in d.iter()}   # <default> children are not assets
     for el in root.iter():
         n += 1
         tag = el.tag if isinstance(el.tag, str) else ""
+        if tag in counts and id(el) not in templates:
+            counts[tag] += 1
+            if counts[tag] > MAX_COUNT[tag]:
+                raise RecipeError(f"the robot has more than {MAX_COUNT[tag]} <{tag}> elements")
+            if tag == "texture" and el.get("file") is None:
+                try:
+                    w, h = int(float(el.get("width", "0"))), int(float(el.get("height", "0")))
+                except ValueError:
+                    raise RecipeError("<texture> width and height must be numbers") from None
+                texels += w * h * (6 if el.get("type") in ("cube", "skybox") else 1)
+            if tag == "hfield":
+                try:
+                    cells += int(float(el.get("nrow", "0"))) * int(float(el.get("ncol", "0")))
+                except ValueError:
+                    raise RecipeError("<hfield> nrow and ncol must be numbers") from None
         if tag in REFUSED_MJCF:
             raise RecipeError(f"MJCF <{tag}> is refused (it can load other files or code, or multiply the model); "
                               "inline what you need")
@@ -144,6 +226,10 @@ def check_mjcf_elements(root: ET.Element) -> None:
                     raise RecipeError(f"<{t} {a}=...> is not a number") from None
                 if v > cap:
                     raise RecipeError(f"<{t} {a}={v}> is larger than {cap}")
+    if texels > MAX_BUILTIN_TEXELS:
+        raise RecipeError(f"the robot's generated textures add up to more than {MAX_BUILTIN_TEXELS:,} pixels")
+    if cells > MAX_HFIELD_CELLS:
+        raise RecipeError(f"the robot's height fields add up to more than {MAX_HFIELD_CELLS:,} cells")
     if n > MAX_ELEMENTS:
         raise RecipeError(f"the robot file has more than {MAX_ELEMENTS} elements")
     if sum(1 for _ in root.iter("body")) > MAX_BODIES:
@@ -153,3 +239,4 @@ def check_mjcf_elements(root: ET.Element) -> None:
             for el in top.iter():
                 if el.tag not in ALLOWED_MJCF:
                     raise RecipeError(f"MJCF <{el.tag}> inside <{section}> is not supported")
+

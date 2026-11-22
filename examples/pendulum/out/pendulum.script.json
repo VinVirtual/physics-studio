@@ -49,52 +49,52 @@
   },
   {
    "id": "l01",
-   "at": 1.9236971999999999,
-   "anchor_s": 1.9237,
+   "at": "event:period",
+   "anchor_s": 2.8049,
    "text": "Measured period: 1.6 seconds. The small-angle formula gives 1.55 seconds.",
-   "start": 4.556,
-   "end": 10.741,
-   "late_s": 0.709,
+   "start": 5.61,
+   "end": 11.795,
+   "late_s": 0.0,
    "words": [
     {
      "w": "Measured",
-     "t": 4.556
+     "t": 5.61
     },
     {
      "w": "period:",
-     "t": 5.103
+     "t": 6.157
     },
     {
      "w": "1.6",
-     "t": 5.606
+     "t": 6.66
     },
     {
      "w": "seconds.",
-     "t": 6.372
+     "t": 7.426
     },
     {
      "w": "The",
-     "t": 7.176
+     "t": 8.23
     },
     {
      "w": "small-angle",
-     "t": 7.421
+     "t": 8.475
     },
     {
      "w": "formula",
-     "t": 8.154
+     "t": 9.208
     },
     {
      "w": "gives",
-     "t": 8.887
+     "t": 9.941
     },
     {
      "w": "1.55",
-     "t": 9.376
+     "t": 10.43
     },
     {
      "w": "seconds.",
-     "t": 10.109
+     "t": 11.163
     }
    ]
   },
@@ -103,56 +103,56 @@
    "at": "end",
    "anchor_s": 6.0,
    "text": "Over 6 seconds, the total energy changed by 0.02 percent.",
-   "start": 12.0,
-   "end": 16.744,
-   "late_s": 0.0,
+   "start": 12.095,
+   "end": 16.839,
+   "late_s": 0.095,
    "words": [
     {
      "w": "Over",
-     "t": 12.0
+     "t": 12.095
     },
     {
      "w": "6",
-     "t": 12.287
+     "t": 12.382
     },
     {
      "w": "seconds,",
-     "t": 12.717
+     "t": 12.812
     },
     {
      "w": "the",
-     "t": 13.146
+     "t": 13.241
     },
     {
      "w": "total",
-     "t": 13.393
+     "t": 13.488
     },
     {
      "w": "energy",
-     "t": 13.887
+     "t": 13.982
     },
     {
      "w": "changed",
-     "t": 14.627
+     "t": 14.722
     },
     {
      "w": "by",
-     "t": 15.12
+     "t": 15.215
     },
     {
      "w": "0.02",
-     "t": 15.367
+     "t": 15.462
     },
     {
      "w": "percent.",
-     "t": 16.107
+     "t": 16.202
     }
    ]
   }
  ],
  "skipped": [],
  "late": [],
- "duration_s": 17.544,
+ "duration_s": 17.639,
  "run_end_s": 12.0,
  "voiced": true,
  "speed": 0.5

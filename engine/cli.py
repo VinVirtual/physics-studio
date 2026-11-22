@@ -17,7 +17,7 @@ from ps import RecipeError  # noqa: E402
 
 HELP = """physics-studio <command> ...
 
-  check                         check MuJoCo, offscreen rendering, ffmpeg and the Kokoro voice
+  check [--no-voice]            check MuJoCo, offscreen rendering, ffmpeg and the Kokoro voice
   new <dir> [--task T]          start a project: recipe.json (+ robot/tern.urdf for arm tasks)
                                 tasks: pick_place, push, drop, pendulum, cartpole
   validate <recipe.json>        check a recipe (and its robot file) without running it
@@ -31,7 +31,7 @@ HELP = """physics-studio <command> ...
 """
 
 
-def cmd_check(_a) -> int:
+def cmd_check(a) -> int:
     ok = True
 
     def line(good: bool, what: str, fix: str = "") -> None:
@@ -46,11 +46,14 @@ def cmd_check(_a) -> int:
         line(False, "mujoco (Python package)", "uv pip install --python .venv/bin/python mujoco numpy pillow imageio-ffmpeg pytest")
         return 1
     found = None
-    for gl in ([os.environ["PHYSICS_STUDIO_GL"]] if os.environ.get("PHYSICS_STUDIO_GL") else ["egl", "osmesa", "glfw"]):
-        r = subprocess.run([sys.executable, "-c", "import mujoco;m=mujoco.MjModel.from_xml_string('<mujoco><worldbody>"
-                            "<geom size=\".1\"/></worldbody></mujoco>');r=mujoco.Renderer(m,32,32);d=mujoco.MjData(m);"
-                            "mujoco.mj_forward(m,d);r.update_scene(d);print(r.render().mean())"],
-                           env={**os.environ, "MUJOCO_GL": gl}, capture_output=True, text=True, timeout=60)
+    probe = ("import mujoco;m=mujoco.MjModel.from_xml_string('<mujoco><worldbody><geom size=\".1\"/></worldbody></mujoco>');"
+             "r=mujoco.Renderer(m,32,32);d=mujoco.MjData(m);mujoco.mj_forward(m,d);r.update_scene(d);print(r.render().mean())")
+    for gl in ([os.environ["PHYSICS_STUDIO_GL"]] if os.environ.get("PHYSICS_STUDIO_GL") else ["egl", "osmesa"]):
+        try:
+            r = subprocess.run([sys.executable, "-I", "-c", probe], env={**os.environ, "MUJOCO_GL": gl},
+                               capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            continue
         if r.returncode == 0:
             found = gl
             break
@@ -63,9 +66,12 @@ def cmd_check(_a) -> int:
         line(True, f"ffmpeg ({ffmpeg()})")
     except RecipeError as e:
         line(False, "ffmpeg", str(e))
+    if a.no_voice:
+        print("all good (voice not checked: --no-voice)" if ok else "something is missing: fix the MISS lines")
+        return 0 if ok else 1
     from ps.pipeline import kokoro_python
     py = kokoro_python()
-    r = subprocess.run([py, "-c", "import kokoro_onnx, soundfile, numpy"], capture_output=True)
+    r = subprocess.run([py, "-I", "-c", "import kokoro_onnx, soundfile, numpy"], capture_output=True, timeout=120)
     line(r.returncode == 0, f"kokoro-onnx voice ({py})",
          "python3 -m venv ~/kokoro/.venv && ~/kokoro/.venv/bin/pip install kokoro-onnx soundfile numpy "
          "(or set PHYSICS_STUDIO_VOICE_PYTHON); without it, build with --no-voice")
@@ -103,8 +109,8 @@ def cmd_validate(a) -> int:
     p = Path(a.recipe)
     r = load_recipe(p)
     s = build_scene(r, p.parent.resolve())
-    import mujoco
-    m = mujoco.MjModel.from_xml_string(s.xml, assets=s.files)
+    from ps.simulate import compile_scene
+    m = compile_scene(s)
     print(f"ok: {r['name']} ({r['task']}), {m.nbody} bodies, {m.njnt} joints, {m.nu} motors, "
           f"{int(round(r['duration'] / r['timestep']))} steps")
     if s.arm:
@@ -137,8 +143,8 @@ def cmd_scene(a) -> int:
     p = Path(a.recipe).resolve()
     r = load_recipe(p)
     s = build_scene(r, p.parent, a.format)
-    out = Path(a.out or p.parent / "out").resolve()
-    out.mkdir(parents=True, exist_ok=True)
+    from ps.files import safe_dir
+    out = safe_dir(Path(os.path.abspath(a.out or p.parent / "out")))
     write_scene(s, out / f"{r['name']}.scene.xml")
     print(f"wrote {out / (r['name'] + '.scene.xml')}")
     return 0
@@ -150,11 +156,11 @@ def cmd_sim(a) -> int:
     from ps.simulate import log_json
     p = Path(a.recipe).resolve()
     r, s, res = simulate_only(p, a.format)
-    out = Path(a.out or p.parent / "out").resolve()
-    out.mkdir(parents=True, exist_ok=True)
+    from ps.files import safe_dir, write_atomic
+    out = safe_dir(Path(os.path.abspath(a.out or p.parent / "out")))
     paths = outputs(out, r["name"])
     write_scene(s, paths["scene"])
-    paths["log"].write_text(log_json(res.log), encoding="utf-8")
+    write_atomic(paths["log"], log_json(res.log))
     t = res.log["task"]
     print(f"{verdict(res.log)}: {t['reason']}")
     print(f"wrote {paths['log']} and {paths['scene']}")
@@ -168,7 +174,7 @@ def cmd_build(a, sheet_only: bool = False) -> int:
 
 
 def cmd_test(_a) -> int:
-    return subprocess.call([sys.executable, "-m", "pytest", "-q", str(ROOT / "tests")], cwd=ROOT)
+    return subprocess.call([sys.executable, "-m", "pytest", "-q", "-rs", str(ROOT / "tests")], cwd=ROOT)
 
 
 def main(argv: list[str]) -> int:
@@ -177,7 +183,7 @@ def main(argv: list[str]) -> int:
         return 0
     ap = argparse.ArgumentParser(prog="physics-studio", add_help=False)
     sub = ap.add_subparsers(dest="cmd")
-    sub.add_parser("check")
+    sub.add_parser("check").add_argument("--no-voice", action="store_true")
     n = sub.add_parser("new")
     n.add_argument("dir")
     n.add_argument("--task", default="pick_place", choices=sorted(TEMPLATES))
@@ -200,6 +206,12 @@ def main(argv: list[str]) -> int:
         return table[a.cmd](a)
     except RecipeError as e:
         print(f"physics-studio: {e}", file=sys.stderr)
+        return 2
+    except RecursionError:
+        print("physics-studio: an input is nested too deeply to read", file=sys.stderr)
+        return 2
+    except OSError as e:          # a missing or dangling file, a permission problem, a full disk
+        print(f"physics-studio: {e.strerror or e}: {e.filename or ''}".rstrip(": "), file=sys.stderr)
         return 2
 
 

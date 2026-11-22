@@ -128,48 +128,48 @@
   },
   {
    "id": "l02",
-   "at": "event:open",
-   "anchor_s": 6.0,
+   "at": "event:let_go",
+   "anchor_s": 6.242,
    "text": "It is set down 0.2 centimetres from the target.",
-   "start": 12.357,
-   "end": 15.661,
-   "late_s": 0.357,
+   "start": 12.484,
+   "end": 15.788,
+   "late_s": 0.0,
    "words": [
     {
      "w": "It",
-     "t": 12.357
+     "t": 12.484
     },
     {
      "w": "is",
-     "t": 12.568
+     "t": 12.695
     },
     {
      "w": "set",
-     "t": 12.78
+     "t": 12.907
     },
     {
      "w": "down",
-     "t": 12.991
+     "t": 13.118
     },
     {
      "w": "0.2",
-     "t": 13.203
+     "t": 13.33
     },
     {
      "w": "centimetres",
-     "t": 13.837
+     "t": 13.964
     },
     {
      "w": "from",
-     "t": 14.683
+     "t": 14.81
     },
     {
      "w": "the",
-     "t": 14.895
+     "t": 15.022
     },
     {
      "w": "target.",
-     "t": 15.106
+     "t": 15.233
     }
    ]
   },
@@ -178,24 +178,24 @@
    "at": "end",
    "anchor_s": 8.0,
    "text": "Task passed.",
-   "start": 16.0,
-   "end": 16.895,
-   "late_s": 0.0,
+   "start": 16.088,
+   "end": 16.983,
+   "late_s": 0.088,
    "words": [
     {
      "w": "Task",
-     "t": 16.0
+     "t": 16.088
     },
     {
      "w": "passed.",
-     "t": 16.286
+     "t": 16.374
     }
    ]
   }
  ],
  "skipped": [],
  "late": [],
- "duration_s": 17.695,
+ "duration_s": 17.783,
  "run_end_s": 16.0,
  "voiced": true,
  "speed": 0.5

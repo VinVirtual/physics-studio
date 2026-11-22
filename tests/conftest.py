@@ -37,13 +37,15 @@ def _gl_works() -> bool:
     code = ("import mujoco;m=mujoco.MjModel.from_xml_string('<mujoco><worldbody><geom size=\".1\"/></worldbody></mujoco>');"
             "r=mujoco.Renderer(m,16,16);d=mujoco.MjData(m);mujoco.mj_forward(m,d);r.update_scene(d);r.render()")
     try:
-        return subprocess.run([sys.executable, "-c", code], capture_output=True, timeout=60).returncode == 0
+        return subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, timeout=60).returncode == 0
     except Exception:
         return False
 
 
 GL = _gl_works()
-needs_gl = pytest.mark.skipif(not GL, reason="no offscreen OpenGL (EGL or OSMesa) on this machine")
+# PS_REQUIRE_GL=1 (set in CI) turns a missing OpenGL into failures instead of skips
+REQUIRE_GL = os.environ.get("PS_REQUIRE_GL") == "1"
+needs_gl = pytest.mark.skipif(not GL and not REQUIRE_GL, reason="no offscreen OpenGL (EGL or OSMesa) on this machine")
 
 
 def deep(d):

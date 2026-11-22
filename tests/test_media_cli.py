@@ -84,15 +84,18 @@ def test_inspect_lists_joints():
 def test_end_to_end_build_without_voice(tmp_path):
     """Recipe to MP4 with captions and no voice (needs offscreen OpenGL and ffmpeg)."""
     pytest.importorskip("mujoco")
-    from conftest import GL
-    if not GL:
+    from conftest import GL, REQUIRE_GL
+    if not GL and not REQUIRE_GL:
         pytest.skip("no offscreen OpenGL (EGL or OSMesa) on this machine")
     from ps.media import probe_duration
-    raw = {**recipe_template("pendulum.json"), "duration": 1.5, "video": {"format": "square", "fps": 24, "speed": 1.0}}
+    raw = {**recipe_template("pendulum.json"), "duration": 1.5, "video": {"format": "square", "fps": 24, "speed": "auto"}}
+    (tmp_path / "out").mkdir()
+    (tmp_path / "out" / "pendulum.jpg").write_bytes(b"stale poster from an earlier build")
     p = tmp_path / "recipe.json"
     p.write_text(json.dumps(raw))
     r = run_cli("build", str(p), "--no-voice")
     assert r.returncode == 0, r.stderr
+    assert "voice keeps up" not in r.stdout          # no voice was made, so the message must not say so
     out = tmp_path / "out"
     script = json.loads((out / "pendulum.script.json").read_text())
     assert script["voiced"] is False and script["lines"]

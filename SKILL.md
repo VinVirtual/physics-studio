@@ -33,7 +33,7 @@ Skill folder (written `$P` below): this folder. Every command is `$P/physics-stu
 ## Narration rules
 
 - Leave `"narration": "auto"` unless the user wants their own words. The auto script is written from the log after the run and only states what happened: grasp time, finger force, lift height, final error, impact speed, measured period, pass or fail.
-- Custom lines may only use numbers through placeholders from the log, such as `{task.final_error_cm}`, `{events.grasp:1}`, `{contacts.max_normal_N:0}`. Never type a measured value into a line by hand, and never claim anything the log does not show. A line tied to an event that did not happen (`"at": "event:grasp"`) is left out automatically and listed in `out/<name>.script.json` under `skipped`.
+- Custom lines may only use numbers through placeholders from the log (a digit typed into a custom line is refused), such as `{task.final_error_cm}`, `{events.grasp:1}`, `{contacts.max_normal_N:0}`. Never type a measured value into a line by hand, and never claim anything the log does not show. A line tied to an event that did not happen (`"at": "event:grasp"`) is left out automatically and listed in `out/<name>.script.json` under `skipped`.
 - `"video": {"speed": "auto"}` (the default) slows playback (1x, 0.8x ... 0.25x) until every line starts within 1.5 s of the event it describes. The HUD shows the speed.
 
 ## Reporting back honestly

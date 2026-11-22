@@ -67,6 +67,7 @@ def schedule(lines: list[dict], timings: dict[str, dict], sim_duration: float, s
 
 
 AUTO_SPEEDS = (1.0, 0.8, 0.67, 0.5, 0.4, 0.33, 0.25)
+MAX_VIDEO_S = 120    # longest video a build will make (s)
 
 
 def choose_speed(lines: list[dict], timings: dict[str, dict], sim_duration: float, hold_end: float,
@@ -75,10 +76,11 @@ def choose_speed(lines: list[dict], timings: dict[str, dict], sim_duration: floa
     starts more than LATE_WARN seconds after the moment it describes (the slowest if none fits)."""
     if requested != "auto":
         return float(requested)
-    for s in AUTO_SPEEDS:
+    allowed = [s for s in AUTO_SPEEDS if sim_duration / s + hold_end <= MAX_VIDEO_S] or [AUTO_SPEEDS[0]]
+    for s in allowed:
         if not schedule(lines, timings, sim_duration, s, hold_end)["late"]:
             return s
-    return AUTO_SPEEDS[-1]
+    return allowed[-1]
 
 
 def chunks(placed: list[dict], max_words: int = 7) -> list[dict]:
@@ -124,10 +126,15 @@ def vtt_time(t: float) -> str:
     return f"{h:02d}:{m:02d}:{s:02d}.{ms:03d}"
 
 
+def vtt_escape(text: str) -> str:
+    """Cue text is not markup: & < > are escaped, and the cue arrow cannot appear."""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("--&gt;", "-&gt;")
+
+
 def vtt(cues: list[dict]) -> str:
     out = ["WEBVTT", ""]
     for i, c in enumerate(cues, 1):
-        text = " ".join(w["w"] for w in c["words"]).replace("-->", "->")
+        text = vtt_escape(" ".join(w["w"] for w in c["words"]))
         out += [str(i), f"{vtt_time(c['start'])} --> {vtt_time(c['end'])}", text, ""]
     return "\n".join(out)
 

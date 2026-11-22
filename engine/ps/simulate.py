@@ -90,7 +90,7 @@ def compile_scene(scene: Scene):
     from . import RecipeError
     try:
         return mujoco.MjModel.from_xml_string(scene.xml, assets=scene.files)
-    except ValueError as e:
+    except (ValueError, RuntimeError) as e:
         raise RecipeError(f"MuJoCo could not compile the scene (a robot name may clash with an object id or a "
                           f"ps_ name): {str(e).strip()[:400]}") from None
 
@@ -148,9 +148,14 @@ class Recorder:
         self.f6 = np.zeros(6)
         self.vel6 = np.zeros(6)
         self.robot_bodies = {i for i, lbl in self.dynamic.items() if lbl == "robot"}
-        self.finger_bodies = set()
+        # each gripper joint's body and everything mounted on it (pads on child bodies count as that finger)
+        self.finger_of: dict[int, int] = {}
         for j in scene.gripper:
-            self.finger_bodies.add(int(m.jnt_bodyid[world.joint(j)]))
+            root = int(m.jnt_bodyid[world.joint(j)])
+            for b in range(m.nbody):
+                if _is_under(m, b, root):
+                    self.finger_of[b] = root
+        self.finger_bodies = set(self.finger_of)
 
     def event(self, t: float, kind: str, **detail) -> None:
         e = {"t": r6(t), "type": kind}
@@ -234,7 +239,10 @@ class Recorder:
                     self.event(t, "contact", object=o)
                 two_fingers = False
             else:
-                two_fingers = "finger" in touching[o] and self._fingers_on(d, bid) >= 2
+                if len(self.scene.gripper) == 1:   # one moving jaw closes against the fixed part of the hand
+                    two_fingers = "finger" in touching[o] and "robot" in touching[o]
+                else:
+                    two_fingers = "finger" in touching[o] and self._fingers_on(d, bid) >= 2
             if two_fingers and not fl["grasped"]:
                 fl["grasped"] = True
                 self.event(t, "grasp", object=o)
@@ -262,9 +270,9 @@ class Recorder:
             c = d.contact[i]
             b1, b2 = int(self.m.geom_bodyid[c.geom1]), int(self.m.geom_bodyid[c.geom2])
             if b1 == bid and b2 in self.finger_bodies:
-                bodies.add(b2)
+                bodies.add(self.finger_of[b2])
             if b2 == bid and b1 in self.finger_bodies:
-                bodies.add(b1)
+                bodies.add(self.finger_of[b1])
         return len(bodies)
 
     def frame(self, d, t: float, step: int) -> FrameRecord:
@@ -373,12 +381,18 @@ def _has_moving_parent(m, b: int) -> bool:
     return False
 
 
-def pendulum_period(samples: list[tuple[float, float]]) -> float | None:
-    """Mean time between upward zero crossings (linear interpolation between steps)."""
+def upward_crossings(samples: list[tuple[float, float]]) -> list[float]:
+    """Times the angle passes zero going up (linear interpolation between steps)."""
     ups = []
     for (t0, a0), (t1, a1) in zip(samples, samples[1:]):
         if a0 < 0 <= a1 and a1 != a0:
             ups.append(t0 + (t1 - t0) * (-a0) / (a1 - a0))
+    return ups
+
+
+def pendulum_period(samples: list[tuple[float, float]]) -> float | None:
+    """Mean time between upward zero crossings."""
+    ups = upward_crossings(samples)
     if len(ups) < 2:
         return None
     return float((ups[-1] - ups[0]) / (len(ups) - 1))
@@ -497,7 +511,13 @@ def _log(recipe, scene, m, d, world, rec: Recorder, ctrl, steps, unstable, traj,
                      "saturated_pct": round(100 * rec.act_sat[i] / max(steps, 1), 2)})
     end_t = steps * m.opt.timestep if unstable is None else unstable
     # planned phases that would start after the run ended never happened: leave them out
-    events = sorted([e for e in ctrl.plan.events if e["t"] <= end_t] + rec.events, key=lambda e: (e["t"], e["type"]))
+    extra = []
+    if recipe["task"] == "pendulum" and recipe["pendulum"]["links"] == 1 and unstable is None:
+        ups = upward_crossings(swing)
+        if len(ups) >= 2:       # the first full swing has been timed
+            extra.append({"t": r6(ups[1]), "type": "period"})
+    events = sorted([e for e in ctrl.plan.events if e["t"] <= end_t] + rec.events + extra,
+                    key=lambda e: (e["t"], e["type"]))
     warnings = []
     for w in range(len(d.warning)):
         if d.warning[w].number:

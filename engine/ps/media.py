@@ -12,6 +12,7 @@ import numpy as np
 from . import RecipeError
 
 RATE = 24000
+FFMPEG_TIMEOUT_S = 600
 
 
 def ffmpeg() -> str:
@@ -39,12 +40,19 @@ def read_wav(path: Path) -> np.ndarray:
 
 
 def write_wav(path: Path, y: np.ndarray) -> None:
+    from .files import commit, temp_beside
     pcm = (np.clip(y, -1, 1) * 32767).astype("<i2")
-    with wave.open(str(path), "wb") as w:
-        w.setnchannels(1)
-        w.setsampwidth(2)
-        w.setframerate(RATE)
-        w.writeframes(pcm.tobytes())
+    tmp = temp_beside(path, ".wav")
+    try:
+        with wave.open(str(tmp), "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(RATE)
+            w.writeframes(pcm.tobytes())
+        commit(tmp, path)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
 
 
 def mix(placed: list[dict], wav_dir: Path | None, duration: float) -> np.ndarray:
@@ -72,18 +80,26 @@ class Encoder:
     """Raw RGB frames in through a pipe, H.264 + AAC MP4 out."""
 
     def __init__(self, out: Path, width: int, height: int, fps: int, audio: Path, duration: float, crf: int = 22) -> None:
+        from .files import temp_beside
+        self.out = out
+        self.tmp = temp_beside(out, ".mp4")      # ffmpeg writes here; renamed into place only on success
         cmd = [ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
                "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{width}x{height}", "-r", str(fps), "-i", "-",
                "-i", str(audio), "-map", "0:v", "-map", "1:a",
                "-c:v", "libx264", "-preset", "medium", "-crf", str(crf), "-pix_fmt", "yuv420p",
                "-c:a", "aac", "-b:a", "128k", "-ar", "48000", "-t", f"{duration:.3f}",
-               "-movflags", "+faststart", str(out)]
+               "-movflags", "+faststart", str(self.tmp)]
         import tempfile
         self.err = tempfile.TemporaryFile()        # a file, not a pipe, so ffmpeg can never block on it
         self.p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=self.err)
 
     def _failed(self) -> RecipeError:
-        self.p.wait()
+        try:
+            self.p.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            self.p.kill()
+        if self.tmp.exists():
+            self.tmp.unlink()
         self.err.seek(0)
         return RecipeError(f"ffmpeg failed: {self.err.read().decode(errors='replace').strip()[:600]}")
 
@@ -94,16 +110,23 @@ class Encoder:
             raise self._failed() from None
 
     def close(self) -> None:
+        from .files import commit
         try:
             self.p.stdin.close()
         except BrokenPipeError:
             pass
-        if self.p.wait() != 0:
+        try:
+            code = self.p.wait(timeout=FFMPEG_TIMEOUT_S)
+        except subprocess.TimeoutExpired:
+            self.p.kill()
+            code = -1
+        if code != 0:
             raise self._failed()
+        commit(self.tmp, self.out)
 
 
 def probe_duration(path: Path) -> float | None:
-    r = subprocess.run([ffmpeg(), "-hide_banner", "-i", str(path)], capture_output=True, text=True)
+    r = subprocess.run([ffmpeg(), "-hide_banner", "-i", str(path)], capture_output=True, text=True, timeout=60)
     import re
     m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", r.stderr)
     if not m:

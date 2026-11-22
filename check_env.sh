@@ -11,11 +11,11 @@ if [ -n "${PHYSICS_STUDIO_PYTHON:-}" ]; then PY="$PHYSICS_STUDIO_PYTHON"
 elif [ -x "$R/.venv/bin/python" ]; then PY="$R/.venv/bin/python"
 else PY="$(command -v python3 || true)"; fi
 
-if [ -z "$PY" ] || ! "$PY" -c "import mujoco, numpy, PIL" 2>/dev/null; then
+if [ -z "$PY" ] || ! "$PY" -I -c "import mujoco, numpy, PIL" 2>/dev/null; then
   echo "MISS python with mujoco, numpy and pillow"
-  echo "       cd \"$R\" && python3 -m venv .venv && .venv/bin/pip install mujoco numpy pillow imageio-ffmpeg pytest"
+  echo "       cd \"$R\" && python3.12 -m venv .venv && .venv/bin/pip install mujoco numpy pillow imageio-ffmpeg pytest"
   echo "       (or with uv: uv venv .venv --python 3.12 && uv pip install --python .venv/bin/python mujoco numpy pillow imageio-ffmpeg pytest)"
   echo "something is missing: fix the MISS lines above and run this again"
   exit 1
 fi
-exec "$PY" "$R/engine/cli.py" check
+exec "$PY" "$R/engine/cli.py" check "$@"

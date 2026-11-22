@@ -258,15 +258,25 @@ def draw_hud(p: Painter, t: float, step: int, dt: float, speed: float, engine: s
            p.f("mono", 12.5), MUTED)
 
 
+def fit_text(text: str, fnt, max_w: float) -> str:
+    """Cut text with an ellipsis so it fits max_w pixels (at the layer's scale)."""
+    if fnt.getlength(text) <= max_w:
+        return text
+    while text and fnt.getlength(text + "…") > max_w:
+        text = text[:-1]
+    return text.rstrip() + "…"
+
+
 def draw_title(p: Painter, title: str, alpha: float) -> None:
     if not title or alpha <= 0:
         return
     x = p.L.hud[0]
-    y = p.L.hud[1] + 144 * p.s
+    y = p.L.hud[1] + 144 * p.s if not p.L.vertical else p.h * 0.70
     fnt = p.f("sans", 22, "SemiBold")
-    w = fnt.getlength(title) / SS + 32 * p.s
+    text = fit_text(title, fnt, (p.w - 2 * x - 32 * p.s) * SS)
+    w = fnt.getlength(text) / SS + 32 * p.s
     p.card(x, y, w, 44 * p.s, alpha=round(226 * alpha), fill=INK)
-    p.text(x + 16 * p.s, y + 11 * p.s, title, fnt, PAPER, alpha=round(255 * alpha))
+    p.text(x + 16 * p.s, y + 11 * p.s, text, fnt, PAPER, alpha=round(255 * alpha))
 
 
 def draw_effort(p: Painter, torques: list[dict]) -> None:
@@ -343,17 +353,30 @@ def draw_caption(p: Painter, words: list[dict], t: float) -> None:
             x += fnt.getlength(texts[i]) + fnt.getlength(" ")
 
 
+def result_lines(p: Painter, headline: str, detail: str) -> tuple[list[str], float]:
+    """The detail wrapped to fit the card, and the card width (both in frame pixels)."""
+    fh = p.f("sans", 30, "Bold")
+    fd = p.f("sans", 17, "Medium")
+    inner = p.w * 0.86 - 56 * p.s
+    words = detail.split()
+    lines = [" ".join(words[i] for i in ln) for ln in wrap_words(words, fd, inner * SS)] if words else []
+    lines = [fit_text(ln, fd, inner * SS) for ln in lines]
+    w = max([fh.getlength(headline)] + [fd.getlength(ln) for ln in lines]) / SS + 56 * p.s
+    return lines, min(w, p.w * 0.86)
+
+
 def draw_result(p: Painter, success: bool | None, headline: str, detail: str, alpha: float) -> None:
     if alpha <= 0:
         return
     col = PASS if success else (FAIL if success is False else INK)
     fh = p.f("sans", 30, "Bold")
     fd = p.f("sans", 17, "Medium")
-    w = max(fh.getlength(headline), fd.getlength(detail)) / SS + 56 * p.s
-    h = 96 * p.s
+    lines, w = result_lines(p, headline, detail)
+    h = (66 + 24 * max(1, len(lines))) * p.s
     x = (p.w - w) / 2
     y = p.h * (0.40 if not p.L.vertical else 0.44) - h / 2
     p.card(x, y, w, h, alpha=round(236 * alpha))
     p.d.rounded_rectangle((x * SS, y * SS, (x + 8 * p.s) * SS, (y + h) * SS), p.px(4), fill=(*col, round(255 * alpha)))
-    p.text(x + 28 * p.s, y + 16 * p.s, headline, fh, col, alpha=round(255 * alpha))
-    p.text(x + 28 * p.s, y + 60 * p.s, detail, fd, INK, alpha=round(255 * alpha))
+    p.text(x + 28 * p.s, y + 16 * p.s, fit_text(headline, fh, (w - 40 * p.s) * SS), fh, col, alpha=round(255 * alpha))
+    for i, ln in enumerate(lines):
+        p.text(x + 28 * p.s, y + (60 + 24 * i) * p.s, ln, fd, INK, alpha=round(255 * alpha))

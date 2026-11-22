@@ -16,9 +16,9 @@ All four were made by running this repository on a 16-core desktop CPU with no G
 
 | Example | What happens (from its log) | Video |
 |---|---|---|
-| [`pick-cube`](examples/pick-cube) | Tern, a five-joint arm written for this repo, grips a 4 cm cube at 2.7 s with up to 16 N of finger force, lifts it 8.1 cm and sets it down 0.2 cm from the target. Task passed. | [landscape](examples/pick-cube/out/pick-cube.mp4), [vertical](examples/pick-cube/out/pick-cube-vertical.mp4), 17.7 s at 0.5x |
+| [`pick-cube`](examples/pick-cube) | Tern, a five-joint arm written for this repo, grips a 4 cm cube at 2.7 s with up to 16 N of finger force, lifts it 8.1 cm and sets it down 0.2 cm from the target. Task passed. | [landscape](examples/pick-cube/out/pick-cube.mp4), [vertical](examples/pick-cube/out/pick-cube-vertical.mp4), 17.8 s at 0.5x |
 | [`cartpole`](examples/cartpole) | An LQR controller holds a 0.7 m pole up from 10 degrees off vertical, takes a 1.2 N·s shove at 3.5 s and settles within 1 degree by 4.55 s. | [MP4](examples/cartpole/out/cartpole.mp4), 19.8 s at 0.5x |
-| [`pendulum`](examples/pendulum) | A 0.6 m pendulum released from 40 degrees. Measured period 1.603 s against 1.554 s from the small-angle formula (the difference is the expected large-swing effect); total energy changed by 0.02% over 6 s. | [MP4](examples/pendulum/out/pendulum.mp4), 17.5 s at 0.5x |
+| [`pendulum`](examples/pendulum) | A 0.6 m pendulum released from 40 degrees. Measured period 1.603 s against 1.554 s from the small-angle formula (the difference is the expected large-swing effect); total energy changed by 0.02% over 6 s. | [MP4](examples/pendulum/out/pendulum.mp4), 17.6 s at 0.5x |
 | [`drop-blocks`](examples/drop-blocks) | A cube, a ball and a can fall onto a table; first impact at 0.23 s at 2.2 m/s; all three come to rest. | [MP4](examples/drop-blocks/out/drop-blocks.mp4), 15.5 s at 0.25x |
 
 ## How it works
@@ -27,8 +27,8 @@ All four were made by running this repository on a 16-core desktop CPU with no G
 2. **Scene**: the robot file is read safely (see below), URDF is converted by MuJoCo's own importer, and a single MJCF scene is written: a lit studio floor, a table, the objects, the robot with one motor per moving joint (its limit taken from the robot file's effort limit), a fixed camera, or a built-in pendulum or cart-pole. Saved as `out/<name>.scene.xml`; it loads in MuJoCo by itself.
 3. **Run**: MuJoCo steps the scene at a fixed timestep (default 2 ms) on one CPU thread. Arm tasks are planned with damped least-squares inverse kinematics before the run, then followed by a PD controller with gravity and Coriolis compensation, so the torques you see are what the motors apply. The cart-pole uses LQR computed from MuJoCo's own linearisation. Start positions can be jittered from the seed; the same recipe and seed give the same log, byte for byte (the build runs the simulation twice and stops if they differ).
 4. **Log**: `out/<name>.log.json` records events (reach, grasp, lift-off, let go, impact, rest...), every pair of bodies that touched with its peak normal force (all contact points of the pair added up), each motor's peak effort and how often it hit its limit, solver warnings, IK waypoints that could not be reached, and the task result with its reason.
-5. **Script**: the narration is written from the log. Custom lines can use placeholders such as `{task.final_error_cm}`; unknown placeholders are errors, and a line tied to an event that did not happen is left out rather than spoken.
-6. **Voice and timing**: Kokoro speaks each line locally, phrase by phrase, with word timings. Each line starts at the moment it describes. With `"speed": "auto"` playback slows (down to 0.25x) until no line starts more than 1.5 s late.
+5. **Script**: the automatic narration is written from the log and only states what happened (a set-down is only mentioned after a real grasp and release, a push only after real contact, the pendulum period only after two full swings). Custom lines are your own words: their numbers must come from the log through placeholders such as `{task.final_error_cm}` (a digit typed into a custom line is refused), unknown placeholders are errors, and a line tied to an event that did not happen is left out rather than spoken. The wording itself is not checked, so keep custom lines factual.
+6. **Voice and timing**: Kokoro speaks each line locally, phrase by phrase, with word timings. Each line starts at the moment it describes. With `"speed": "auto"` playback slows (down to 0.25x) until no line starts more than 1.5 s late. A video is never longer than 120 s.
 7. **Frames**: MuJoCo's offscreen renderer (EGL or OSMesa, CPU is fine) replays the recorded states; overlays are drawn with Pillow at 2x and scaled down. Forces, centre of mass and motor values come from the run itself, not the replay.
 8. **Encode**: ffmpeg writes H.264 + AAC with fast start, plus a poster JPEG, the VTT captions and a contact sheet for review.
 
@@ -50,6 +50,8 @@ Read these before showing a clip to anyone.
 - **Robot files**: URDF and MJCF only (expand xacro first; SDF is not read). The robot's own actuators are replaced by one motor per controlled joint; sensors and keyframes are dropped; equality constraints, tendons and contact exclusions are kept. MuJoCo's URDF importer uses collision geometry only.
 - Pendulum and cart-pole bodies are built in. The double pendulum has no measured period (it is not periodic).
 - Word timings inside a phrase are estimated from syllables, so a highlighted word can be a fraction of a second off.
+- A grasp is detected when the object touches two different gripper joints' bodies (pads on their child bodies count), or, for a one-joint gripper, the moving jaw and any other part of the robot.
+- The bundled fonts cover Latin text; titles or captions in other scripts may show as empty boxes.
 - The voice is Kokoro with its fixed voices; it does not clone voices.
 - Determinism is checked on one machine. Other CPUs, operating systems or MuJoCo versions can give slightly different numbers.
 - **Tested on Linux only** (Ubuntu 22.04, Python 3.12, MuJoCo 4.0.1, Mesa EGL on the CPU).
@@ -62,13 +64,15 @@ A robot file from someone else is untrusted input:
 - Meshes (`.stl`, `.obj`, `.msh`), textures and height fields (`.png`) are read only from inside the recipe's folder (so the usual `urdf/` + `meshes/` layout works) after following symbolic links, with size and count caps, and renamed to flat names. Absolute paths, `file://`, URLs and `..` are refused.
 - Only a fixed list of MJCF elements may reach MuJoCo. `<include>`, `<plugin>`, `<extension>`, `<model>`, `<skin>`, `<instance>`, `<flex>`, `<flexcomp>`, `<replicate>`, `<composite>` and `<attach>` are refused, as is any other element or attribute that names a file (cube-map faces included). Texture and height-field sizes, element counts (20,000) and bodies (400) are capped.
 - Robot files must be UTF-8. MuJoCo stops a diverging state and carries on; physics-studio treats its bad-state warnings as an unstable run, stops, and says so.
-- Recipes are size-capped (256 KB), strict JSON (no NaN or Infinity, no duplicate keys), and capped in steps (60,000), objects (12) and narration (16 lines).
+- Recipes are size-capped (256 KB), strict JSON (no NaN or Infinity, no duplicate keys, no numbers too large for a float), and capped in steps (60,000), objects (12), narration (16 lines) and video length (120 s).
+- Resource budgets are totals over the whole robot, so many small parts cannot add up: PNG sizes are read from the file header before anything decodes them (at most 4096x4096 each, 32 million pixels in all), mesh faces are counted from the file headers for every use of a mesh (1.5 million in all), generated textures (32 million pixels) and height fields (2 million cells) are budgeted, and at most 100 meshes, 30 textures and 4 height fields are allowed. Nesting deeper than 64 levels is refused.
+- Outputs are never written through symbolic links: an output folder or file that is a link is refused, and every file (including the MP4 from ffmpeg) is written under a temporary name and renamed into place. The voice step and ffmpeg run with time limits.
 
 ## Requirements
 
 | Needed | Why | Licence |
 |---|---|---|
-| Python 3.10 or newer (tested with 3.12) | everything except the voice | PSF-2.0 |
+| Python 3.12 (the version tested and used in CI) | everything except the voice | PSF-2.0 |
 | [mujoco](https://pypi.org/project/mujoco/) 4.x | physics and rendering | Apache-2.0 |
 | numpy, pillow | maths, overlays | BSD-3-Clause and others; MIT-CMU |
 | Mesa EGL or OSMesa | offscreen OpenGL on the CPU | MIT |
@@ -91,7 +95,7 @@ git clone https://github.com/VinVirtual/physics-studio ~/.claude/skills/physics-
 cd ~/.claude/skills/physics-studio
 
 # 1. physics: a venv inside this folder
-python3 -m venv .venv && .venv/bin/pip install mujoco numpy pillow imageio-ffmpeg pytest
+python3.12 -m venv .venv && .venv/bin/pip install mujoco numpy pillow imageio-ffmpeg pytest   # or: uv venv .venv --python 3.12
 # offscreen OpenGL, if missing (Debian/Ubuntu): sudo apt install libegl1 libgl1-mesa-dri
 
 # 2. the voice (optional): kokoro-onnx in its own venv, and the model files
@@ -109,6 +113,8 @@ cd -
 |---|---|
 | `PHYSICS_STUDIO_PYTHON` | `.venv/bin/python` in this folder, else `python3` |
 | `MUJOCO_GL` | `egl` (or `osmesa`) |
+| `PHYSICS_STUDIO_GL` | for `check` only: test this one backend instead of trying `egl`, then `osmesa` |
+| `PS_REQUIRE_GL` | `1` makes the rendering tests fail instead of skip when OpenGL is missing (set in CI) |
 | `KOKORO_HOME` | `~/kokoro` (model files, and the voice venv) |
 | `PHYSICS_STUDIO_VOICE_PYTHON` | `$KOKORO_HOME/.venv/bin/python`, else `python3` |
 | `FF` | `ffmpeg` on the PATH, else the one inside `imageio-ffmpeg` |
@@ -126,7 +132,7 @@ cd -
 ## Commands
 
 ```
-physics-studio check                     MuJoCo, offscreen rendering, ffmpeg, Kokoro
+physics-studio check [--no-voice]        MuJoCo, offscreen rendering, ffmpeg, Kokoro
 physics-studio new <dir> [--task T]      a recipe to edit (pick_place, push, drop, pendulum, cartpole)
 physics-studio validate <recipe.json>    check the recipe and the robot file, compile the scene
 physics-studio inspect <robot file>      joints (type, range, effort) and bodies   [--json]
@@ -177,7 +183,7 @@ physics-studio test                      the test suite
 | `overlays` | `forces`, `com`, `torques`, `hud`, `captions` (true or false), `force_scale` (m/N), `min_force` (N) |
 | `video` | `format`, `fps` (24, 25, 30, 50, 60), `speed` (`auto` or 0.1 to 4), `hold_end` (s) |
 | `voice` | `on`, `voice` (a Kokoro voice such as `af_heart`), `speed`, `lang` (`en-us`, `en-gb`) |
-| `narration` | `"auto"`, or a list of `{"at": "start" / "end" / "event:<type>" / seconds, "say": "text with {placeholders}"}` |
+| `narration` | `"auto"`, or a list of `{"at": "start" / "end" / "event:<type>" / seconds, "say": "text with {placeholders}"}`; digits are only allowed through placeholders |
 
 Placeholders are any value in the log, flattened with dots (`{task.final_error_cm}`, `{contacts.max_normal_N}`, `{objects.cube.max_height_m}`), plus `{events.<type>}` for the first time of an event. `{x:1}` rounds to one decimal.
 
@@ -201,7 +207,7 @@ A build with `--format` other than the recipe's own adds the format to the names
 ./physics-studio test
 ```
 
-173 tests: recipe validation with bad and hostile input, robot-file safety (paths, symbolic links, XML declarations, refused MJCF elements, size caps), MJCF generation (motors, positions, camera, URDF and MJCF robots, standalone scene files), determinism (same seed gives the same log; recording frames does not change the run; the command line twice gives identical files), physics checks against theory (pendulum period with the large-swing correction, energy conservation, free-fall impact speed and time, support force equal to weight), task outcomes (pick, push, LQR recovery, uncontrolled fall, an unreachable target failing honestly), overlay maths (projection against MuJoCo's own render, arrows, bars, text wrapping), timing and captions, narration from logs, the audio mix and an end-to-end build. Tests that need offscreen OpenGL skip, and say so, when it is missing.
+195 tests: recipe validation with bad and hostile input, robot-file safety (paths, symbolic links, XML declarations, refused MJCF elements, size caps), MJCF generation (motors, positions, camera, URDF and MJCF robots, standalone scene files), determinism (same seed gives the same log; recording frames does not change the run; the command line twice gives identical files), physics checks against theory (pendulum period with the large-swing correction, energy conservation, free-fall impact speed and time, support force equal to weight), task outcomes (pick, push, LQR recovery, uncontrolled fall, an unreachable target failing honestly), overlay maths (projection against MuJoCo's own render, arrows, bars, text wrapping), timing and captions, narration from logs, the audio mix and an end-to-end build. Tests that need offscreen OpenGL skip, and say so (`-rs`), when it is missing, unless `PS_REQUIRE_GL=1`; the CI workflow sets it. The suite also covers the review fixes: whole-robot budgets, isolated probes, links at output paths, narration gating, card layout, video caps and VTT escaping.
 
 ## Licence
 
