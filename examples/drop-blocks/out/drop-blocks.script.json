@@ -1,0 +1,166 @@
+{
+ "lines": [
+  {
+   "id": "l00",
+   "at": "start",
+   "anchor_s": 0.0,
+   "text": "Three objects fall under gravity, 9.81 metres per second squared.",
+   "start": 0.35,
+   "end": 4.789,
+   "late_s": 0.35,
+   "words": [
+    {
+     "w": "Three",
+     "t": 0.35
+    },
+    {
+     "w": "objects",
+     "t": 0.525
+    },
+    {
+     "w": "fall",
+     "t": 0.875
+    },
+    {
+     "w": "under",
+     "t": 1.05
+    },
+    {
+     "w": "gravity,",
+     "t": 1.401
+    },
+    {
+     "w": "9.81",
+     "t": 2.092
+    },
+    {
+     "w": "metres",
+     "t": 2.868
+    },
+    {
+     "w": "per",
+     "t": 3.386
+    },
+    {
+     "w": "second",
+     "t": 3.645
+    },
+    {
+     "w": "squared.",
+     "t": 4.163
+    }
+   ]
+  },
+  {
+   "id": "l01",
+   "at": "event:impact",
+   "anchor_s": 0.228,
+   "text": "First impact at 0.23 seconds, at 2.2 metres per second. Peak contact force: 401.9 newtons.",
+   "start": 5.089,
+   "end": 12.993,
+   "late_s": 4.177,
+   "words": [
+    {
+     "w": "First",
+     "t": 5.089
+    },
+    {
+     "w": "impact",
+     "t": 5.366
+    },
+    {
+     "w": "at",
+     "t": 5.92
+    },
+    {
+     "w": "0.23",
+     "t": 6.198
+    },
+    {
+     "w": "seconds,",
+     "t": 7.029
+    },
+    {
+     "w": "at",
+     "t": 7.787
+    },
+    {
+     "w": "2.2",
+     "t": 7.974
+    },
+    {
+     "w": "metres",
+     "t": 8.535
+    },
+    {
+     "w": "per",
+     "t": 8.909
+    },
+    {
+     "w": "second.",
+     "t": 9.096
+    },
+    {
+     "w": "Peak",
+     "t": 9.78
+    },
+    {
+     "w": "contact",
+     "t": 10.072
+    },
+    {
+     "w": "force:",
+     "t": 10.655
+    },
+    {
+     "w": "401.9",
+     "t": 11.095
+    },
+    {
+     "w": "newtons.",
+     "t": 12.189
+    }
+   ]
+  },
+  {
+   "id": "l02",
+   "at": "end",
+   "anchor_s": 2.5,
+   "text": "All objects came to rest.",
+   "start": 13.293,
+   "end": 14.7,
+   "late_s": 3.293,
+   "words": [
+    {
+     "w": "All",
+     "t": 13.293
+    },
+    {
+     "w": "objects",
+     "t": 13.518
+    },
+    {
+     "w": "came",
+     "t": 13.968
+    },
+    {
+     "w": "to",
+     "t": 14.193
+    },
+    {
+     "w": "rest.",
+     "t": 14.418
+    }
+   ]
+  }
+ ],
+ "skipped": [],
+ "late": [
+  "l01",
+  "l02"
+ ],
+ "duration_s": 15.5,
+ "run_end_s": 10.0,
+ "voiced": true,
+ "speed": 0.25
+}

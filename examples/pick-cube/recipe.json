@@ -1,0 +1,21 @@
+{
+  "name": "pick-cube",
+  "title": "Tern picks up a cube",
+  "task": "pick_place",
+  "seed": 7,
+  "timestep": 0.002,
+  "duration": 8.0,
+  "robot": {
+    "file": "robot/tern.urdf",
+    "base": [0.0, 0.0, 0.0],
+    "end_effector": {"body": "palm", "offset": [0, 0, 0.075]},
+    "gripper": {"joints": ["finger_left", "finger_right"], "open": [0.04, 0.04], "closed": [0.012, 0.012], "force": 8},
+    "home": {"shoulder": 0.3, "elbow": 1.2, "wrist_pitch": 1.2}
+  },
+  "table": {"size": [0.45, 0.35], "height": 0.4, "pos": [0.2, 0.0]},
+  "objects": [
+    {"id": "cube", "shape": "box", "size": [0.02, 0.02, 0.02], "mass": 0.08, "pos": [0.27, -0.13, 0.0], "color": "ochre", "jitter": 0.004}
+  ],
+  "goal": {"object": "cube", "place": [0.22, 0.15], "tolerance": 0.025, "lift": 0.08},
+  "video": {"format": "landscape", "fps": 30}
+}

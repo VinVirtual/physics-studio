@@ -1,0 +1,16 @@
+{
+  "name": "drop-blocks",
+  "title": "Three objects dropped on a table",
+  "task": "drop",
+  "seed": 11,
+  "timestep": 0.002,
+  "duration": 2.5,
+  "table": {"size": [0.4, 0.3], "height": 0.4, "pos": [0, 0]},
+  "objects": [
+    {"id": "cube", "shape": "box", "size": [0.03, 0.03, 0.03], "mass": 0.2, "pos": [-0.12, 0.02, 0.35], "yaw_deg": 20, "color": "ochre", "jitter": 0.01},
+    {"id": "ball", "shape": "sphere", "size": [0.035], "mass": 0.15, "pos": [0.02, -0.05, 0.5], "color": "cobalt"},
+    {"id": "can", "shape": "cylinder", "size": [0.03, 0.05], "mass": 0.3, "pos": [0.14, 0.06, 0.25], "color": "teal", "jitter": 0.01}
+  ],
+  "goal": {"rest_speed": 0.02},
+  "video": {"format": "landscape", "fps": 30}
+}

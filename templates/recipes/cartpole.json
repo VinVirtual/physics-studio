@@ -1,0 +1,11 @@
+{
+  "name": "cartpole",
+  "title": "Cart-pole: LQR balance and a shove",
+  "task": "cartpole",
+  "seed": 3,
+  "timestep": 0.002,
+  "duration": 8.0,
+  "cartpole": {"pole_length": 0.7, "pole_mass": 0.25, "cart_mass": 1.0, "angle_deg": 10, "controller": "lqr",
+               "force_limit": 25, "push": {"at": 3.5, "impulse": 1.2}},
+  "video": {"format": "landscape", "fps": 30}
+}

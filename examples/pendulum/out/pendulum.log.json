@@ -1,0 +1,59 @@
+{
+  "physics_studio": 1,
+  "recipe": "pendulum",
+  "title": "A pendulum, released from 40 degrees",
+  "task_type": "pendulum",
+  "seed": 1,
+  "mujoco_version": "4.0.1",
+  "timestep_s": 0.001,
+  "steps": 6000,
+  "duration_s": 6.0,
+  "model": {
+    "bodies": 3,
+    "joints": 1,
+    "actuators": 0,
+    "dof": 1,
+    "joint_names": [
+      "swing1"
+    ],
+    "total_mass_kg": 5.744287,
+    "robot_mass_kg": null,
+    "arm_joints": 0,
+    "gripper_joints": 0,
+    "robot_source": null
+  },
+  "objects": [],
+  "events": [
+    {
+      "t": 0.0,
+      "type": "release"
+    }
+  ],
+  "contacts": {
+    "pairs": [],
+    "max_normal_N": 0.0,
+    "max_pair": null,
+    "max_t": 0.0
+  },
+  "actuators": [],
+  "plan": {
+    "unreachable": [],
+    "ends_at_s": 0.0,
+    "cut_short": false
+  },
+  "warnings": [],
+  "task": {
+    "name": "pendulum",
+    "links": 1,
+    "measured_period_s": 1.603081,
+    "small_angle_period_s": 1.553893,
+    "release_angle_deg": 40,
+    "energy_start_J": 1.383948,
+    "energy_end_J": 1.384219,
+    "energy_change_pct": 0.02,
+    "max_angle_deg": 40.0,
+    "success": true,
+    "reason": "measured the period (a pendulum has no pass or fail)"
+  },
+  "trajectory_sha256": "820cd7df39db3e5fa2488f1c74f45cf84164215c9067ed19c7cf5ccf054441c2"
+}

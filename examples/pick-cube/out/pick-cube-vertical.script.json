@@ -1,0 +1,202 @@
+{
+ "lines": [
+  {
+   "id": "l00",
+   "at": "start",
+   "anchor_s": 0.0,
+   "text": "A five-joint arm reaches for a 4 centimetre cube.",
+   "start": 0.35,
+   "end": 3.47,
+   "late_s": 0.35,
+   "words": [
+    {
+     "w": "A",
+     "t": 0.35
+    },
+    {
+     "w": "five-joint",
+     "t": 0.537
+    },
+    {
+     "w": "arm",
+     "t": 1.099
+    },
+    {
+     "w": "reaches",
+     "t": 1.286
+    },
+    {
+     "w": "for",
+     "t": 1.661
+    },
+    {
+     "w": "a",
+     "t": 1.848
+    },
+    {
+     "w": "4",
+     "t": 2.035
+    },
+    {
+     "w": "centimetre",
+     "t": 2.597
+    },
+    {
+     "w": "cube.",
+     "t": 3.158
+    }
+   ]
+  },
+  {
+   "id": "l01",
+   "at": "event:grasp",
+   "anchor_s": 2.718,
+   "text": "Grip at 2.7 seconds, with up to 16 newtons of finger force. The cube rises 8.1 centimetres.",
+   "start": 5.436,
+   "end": 12.057,
+   "late_s": 0.0,
+   "words": [
+    {
+     "w": "Grip",
+     "t": 5.436
+    },
+    {
+     "w": "at",
+     "t": 5.668
+    },
+    {
+     "w": "2.7",
+     "t": 5.901
+    },
+    {
+     "w": "seconds,",
+     "t": 6.597
+    },
+    {
+     "w": "with",
+     "t": 7.23
+    },
+    {
+     "w": "up",
+     "t": 7.411
+    },
+    {
+     "w": "to",
+     "t": 7.592
+    },
+    {
+     "w": "16",
+     "t": 7.773
+    },
+    {
+     "w": "newtons",
+     "t": 8.317
+    },
+    {
+     "w": "of",
+     "t": 8.68
+    },
+    {
+     "w": "finger",
+     "t": 8.861
+    },
+    {
+     "w": "force.",
+     "t": 9.224
+    },
+    {
+     "w": "The",
+     "t": 9.735
+    },
+    {
+     "w": "cube",
+     "t": 9.938
+    },
+    {
+     "w": "rises",
+     "t": 10.141
+    },
+    {
+     "w": "8.1",
+     "t": 10.546
+    },
+    {
+     "w": "centimetres.",
+     "t": 11.154
+    }
+   ]
+  },
+  {
+   "id": "l02",
+   "at": "event:open",
+   "anchor_s": 6.0,
+   "text": "It is set down 0.2 centimetres from the target.",
+   "start": 12.357,
+   "end": 15.661,
+   "late_s": 0.357,
+   "words": [
+    {
+     "w": "It",
+     "t": 12.357
+    },
+    {
+     "w": "is",
+     "t": 12.568
+    },
+    {
+     "w": "set",
+     "t": 12.78
+    },
+    {
+     "w": "down",
+     "t": 12.991
+    },
+    {
+     "w": "0.2",
+     "t": 13.203
+    },
+    {
+     "w": "centimetres",
+     "t": 13.837
+    },
+    {
+     "w": "from",
+     "t": 14.683
+    },
+    {
+     "w": "the",
+     "t": 14.895
+    },
+    {
+     "w": "target.",
+     "t": 15.106
+    }
+   ]
+  },
+  {
+   "id": "l03",
+   "at": "end",
+   "anchor_s": 8.0,
+   "text": "Task passed.",
+   "start": 16.0,
+   "end": 16.895,
+   "late_s": 0.0,
+   "words": [
+    {
+     "w": "Task",
+     "t": 16.0
+    },
+    {
+     "w": "passed.",
+     "t": 16.286
+    }
+   ]
+  }
+ ],
+ "skipped": [],
+ "late": [],
+ "duration_s": 17.695,
+ "run_end_s": 16.0,
+ "voiced": true,
+ "speed": 0.5
+}

@@ -1,0 +1,175 @@
+{
+ "lines": [
+  {
+   "id": "l00",
+   "at": "start",
+   "anchor_s": 0.0,
+   "text": "An LQR controller balances a 0.7 metre pole on a cart, starting 10 degrees from upright.",
+   "start": 0.35,
+   "end": 6.776,
+   "late_s": 0.35,
+   "words": [
+    {
+     "w": "An",
+     "t": 0.35
+    },
+    {
+     "w": "LQR",
+     "t": 0.596
+    },
+    {
+     "w": "controller",
+     "t": 0.843
+    },
+    {
+     "w": "balances",
+     "t": 1.581
+    },
+    {
+     "w": "a",
+     "t": 2.32
+    },
+    {
+     "w": "0.7",
+     "t": 2.566
+    },
+    {
+     "w": "metre",
+     "t": 3.305
+    },
+    {
+     "w": "pole",
+     "t": 3.551
+    },
+    {
+     "w": "on",
+     "t": 4.044
+    },
+    {
+     "w": "a",
+     "t": 4.29
+    },
+    {
+     "w": "cart,",
+     "t": 4.537
+    },
+    {
+     "w": "starting",
+     "t": 5.068
+    },
+    {
+     "w": "10",
+     "t": 5.396
+    },
+    {
+     "w": "degrees",
+     "t": 5.888
+    },
+    {
+     "w": "from",
+     "t": 6.216
+    },
+    {
+     "w": "upright.",
+     "t": 6.38
+    }
+   ]
+  },
+  {
+   "id": "l01",
+   "at": "event:push",
+   "anchor_s": 3.5,
+   "text": "At 3.5 seconds, the cart is shoved with 1.2 newton seconds.",
+   "start": 7.076,
+   "end": 11.4,
+   "late_s": 0.076,
+   "words": [
+    {
+     "w": "At",
+     "t": 7.076
+    },
+    {
+     "w": "3.5",
+     "t": 7.321
+    },
+    {
+     "w": "seconds,",
+     "t": 8.058
+    },
+    {
+     "w": "the",
+     "t": 8.71
+    },
+    {
+     "w": "cart",
+     "t": 8.909
+    },
+    {
+     "w": "is",
+     "t": 9.107
+    },
+    {
+     "w": "shoved",
+     "t": 9.306
+    },
+    {
+     "w": "with",
+     "t": 9.703
+    },
+    {
+     "w": "1.2",
+     "t": 9.902
+    },
+    {
+     "w": "newton",
+     "t": 10.498
+    },
+    {
+     "w": "seconds.",
+     "t": 10.895
+    }
+   ]
+  },
+  {
+   "id": "l02",
+   "at": "end",
+   "anchor_s": 8.0,
+   "text": "Largest lean: 10 degrees. Task passed.",
+   "start": 16.0,
+   "end": 18.976,
+   "late_s": 0.0,
+   "words": [
+    {
+     "w": "Largest",
+     "t": 16.0
+    },
+    {
+     "w": "lean:",
+     "t": 16.593
+    },
+    {
+     "w": "10",
+     "t": 17.027
+    },
+    {
+     "w": "degrees.",
+     "t": 17.496
+    },
+    {
+     "w": "Task",
+     "t": 18.081
+    },
+    {
+     "w": "passed.",
+     "t": 18.367
+    }
+   ]
+  }
+ ],
+ "skipped": [],
+ "late": [],
+ "duration_s": 19.776,
+ "run_end_s": 16.0,
+ "voiced": true,
+ "speed": 0.5
+}

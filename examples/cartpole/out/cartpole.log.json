@@ -1,0 +1,70 @@
+{
+  "physics_studio": 1,
+  "recipe": "cartpole",
+  "title": "Cart-pole: LQR balance and a shove",
+  "task_type": "cartpole",
+  "seed": 3,
+  "mujoco_version": "4.0.1",
+  "timestep_s": 0.002,
+  "steps": 4000,
+  "duration_s": 8.0,
+  "model": {
+    "bodies": 3,
+    "joints": 2,
+    "actuators": 1,
+    "dof": 2,
+    "joint_names": [
+      "slide",
+      "hinge"
+    ],
+    "total_mass_kg": 1.25,
+    "robot_mass_kg": null,
+    "arm_joints": 0,
+    "gripper_joints": 0,
+    "robot_source": null
+  },
+  "objects": [],
+  "events": [
+    {
+      "t": 0.0,
+      "type": "start"
+    },
+    {
+      "t": 3.5,
+      "type": "push"
+    }
+  ],
+  "contacts": {
+    "pairs": [],
+    "max_normal_N": 0.0,
+    "max_pair": null,
+    "max_t": 0.0
+  },
+  "actuators": [
+    {
+      "name": "slide",
+      "max_abs": 15.389266,
+      "limit": 25.0,
+      "saturated_pct": 0.0
+    }
+  ],
+  "plan": {
+    "unreachable": [],
+    "ends_at_s": 0.0,
+    "cut_short": false
+  },
+  "warnings": [],
+  "task": {
+    "name": "cartpole",
+    "controller": "lqr",
+    "start_angle_deg": 10,
+    "max_angle_deg": 10.0,
+    "final_angle_deg": 0.05,
+    "max_cart_travel_m": 0.245023,
+    "fell_at_s": null,
+    "settled_at_s": 4.546,
+    "success": true,
+    "reason": "the pole stayed up and settled within 1 degree by 4.55 s"
+  },
+  "trajectory_sha256": "f8adbc8e324f4d9c7d626ffd2101b61a471908f90fa6be488c19219e4e7c0699"
+}

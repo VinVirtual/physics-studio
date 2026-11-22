@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# physics-studio launcher: physics-studio <command> ...   (run "physics-studio help" for the list)
+# Uses PHYSICS_STUDIO_PYTHON if set, else the .venv inside this folder, else python3.
+R="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -n "${PHYSICS_STUDIO_PYTHON:-}" ]; then PY="$PHYSICS_STUDIO_PYTHON"
+elif [ -x "$R/.venv/bin/python" ]; then PY="$R/.venv/bin/python"
+else PY="$(command -v python3)"; fi
+exec "$PY" "$R/engine/cli.py" "$@"

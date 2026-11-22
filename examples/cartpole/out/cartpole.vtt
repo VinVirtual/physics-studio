@@ -1,0 +1,25 @@
+WEBVTT
+
+1
+00:00:00.350 --> 00:00:03.551
+An LQR controller balances a 0.7 metre
+
+2
+00:00:03.551 --> 00:00:05.068
+pole on a cart,
+
+3
+00:00:05.068 --> 00:00:07.026
+starting 10 degrees from upright.
+
+4
+00:00:07.076 --> 00:00:08.710
+At 3.5 seconds,
+
+5
+00:00:08.710 --> 00:00:11.650
+the cart is shoved with 1.2 newton seconds.
+
+6
+00:00:16.000 --> 00:00:19.226
+Largest lean: 10 degrees. Task passed.

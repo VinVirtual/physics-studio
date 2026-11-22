@@ -1,0 +1,159 @@
+{
+ "lines": [
+  {
+   "id": "l00",
+   "at": "start",
+   "anchor_s": 0.0,
+   "text": "A 0.6 metre pendulum is released from 40 degrees.",
+   "start": 0.35,
+   "end": 4.256,
+   "late_s": 0.35,
+   "words": [
+    {
+     "w": "A",
+     "t": 0.35
+    },
+    {
+     "w": "0.6",
+     "t": 0.558
+    },
+    {
+     "w": "metre",
+     "t": 1.183
+    },
+    {
+     "w": "pendulum",
+     "t": 1.391
+    },
+    {
+     "w": "is",
+     "t": 2.016
+    },
+    {
+     "w": "released",
+     "t": 2.225
+    },
+    {
+     "w": "from",
+     "t": 2.85
+    },
+    {
+     "w": "40",
+     "t": 3.058
+    },
+    {
+     "w": "degrees.",
+     "t": 3.683
+    }
+   ]
+  },
+  {
+   "id": "l01",
+   "at": 1.9236971999999999,
+   "anchor_s": 1.9237,
+   "text": "Measured period: 1.6 seconds. The small-angle formula gives 1.55 seconds.",
+   "start": 4.556,
+   "end": 10.741,
+   "late_s": 0.709,
+   "words": [
+    {
+     "w": "Measured",
+     "t": 4.556
+    },
+    {
+     "w": "period:",
+     "t": 5.103
+    },
+    {
+     "w": "1.6",
+     "t": 5.606
+    },
+    {
+     "w": "seconds.",
+     "t": 6.372
+    },
+    {
+     "w": "The",
+     "t": 7.176
+    },
+    {
+     "w": "small-angle",
+     "t": 7.421
+    },
+    {
+     "w": "formula",
+     "t": 8.154
+    },
+    {
+     "w": "gives",
+     "t": 8.887
+    },
+    {
+     "w": "1.55",
+     "t": 9.376
+    },
+    {
+     "w": "seconds.",
+     "t": 10.109
+    }
+   ]
+  },
+  {
+   "id": "l02",
+   "at": "end",
+   "anchor_s": 6.0,
+   "text": "Over 6 seconds, the total energy changed by 0.02 percent.",
+   "start": 12.0,
+   "end": 16.744,
+   "late_s": 0.0,
+   "words": [
+    {
+     "w": "Over",
+     "t": 12.0
+    },
+    {
+     "w": "6",
+     "t": 12.287
+    },
+    {
+     "w": "seconds,",
+     "t": 12.717
+    },
+    {
+     "w": "the",
+     "t": 13.146
+    },
+    {
+     "w": "total",
+     "t": 13.393
+    },
+    {
+     "w": "energy",
+     "t": 13.887
+    },
+    {
+     "w": "changed",
+     "t": 14.627
+    },
+    {
+     "w": "by",
+     "t": 15.12
+    },
+    {
+     "w": "0.02",
+     "t": 15.367
+    },
+    {
+     "w": "percent.",
+     "t": 16.107
+    }
+   ]
+  }
+ ],
+ "skipped": [],
+ "late": [],
+ "duration_s": 17.544,
+ "run_end_s": 12.0,
+ "voiced": true,
+ "speed": 0.5
+}

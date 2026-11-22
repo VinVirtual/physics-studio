@@ -1,0 +1,12 @@
+.venv/
+.scratch/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+# per-project working files: the voice cache and the audio mix
+build/
+# outputs of your own projects; the examples keep theirs
+out/
+!examples/*/out/
+MUJOCO_LOG.TXT

@@ -1,0 +1,10 @@
+{
+  "name": "pendulum",
+  "title": "A pendulum, released from 40 degrees",
+  "task": "pendulum",
+  "seed": 1,
+  "timestep": 0.001,
+  "duration": 6.0,
+  "pendulum": {"links": 1, "length": 0.6, "mass": 1.0, "angle_deg": 40, "damping": 0.0},
+  "video": {"format": "landscape", "fps": 30}
+}

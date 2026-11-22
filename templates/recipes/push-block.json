@@ -1,0 +1,15 @@
+{
+  "name": "push-block",
+  "title": "Tern pushes a block",
+  "task": "push",
+  "seed": 2,
+  "robot": {
+    "file": "robot/tern.urdf",
+    "end_effector": {"body": "palm", "offset": [0, 0, 0.075]},
+    "gripper": {"joints": ["finger_left", "finger_right"], "open": [0.04, 0.04], "closed": [0.0, 0.0], "force": 8},
+    "home": {"shoulder": 0.3, "elbow": 1.2, "wrist_pitch": 1.2}
+  },
+  "table": {"size": [0.45, 0.35], "height": 0.4, "pos": [0.2, 0.0]},
+  "objects": [{"id": "block", "shape": "box", "size": [0.025, 0.04, 0.02], "mass": 0.15, "pos": [0.28, -0.12, 0], "color": "cobalt"}],
+  "goal": {"object": "block", "direction_deg": 90, "distance": 0.15, "tolerance": 0.03}
+}

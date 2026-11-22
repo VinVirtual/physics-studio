@@ -1,0 +1,192 @@
+{
+  "physics_studio": 1,
+  "recipe": "drop-blocks",
+  "title": "Three objects dropped on a table",
+  "task_type": "drop",
+  "seed": 11,
+  "mujoco_version": "4.0.1",
+  "timestep_s": 0.002,
+  "steps": 1250,
+  "duration_s": 2.5,
+  "model": {
+    "bodies": 5,
+    "joints": 3,
+    "actuators": 0,
+    "dof": 18,
+    "joint_names": [
+      "cube_free",
+      "ball_free",
+      "can_free"
+    ],
+    "total_mass_kg": 17.91528,
+    "robot_mass_kg": null,
+    "arm_joints": 0,
+    "gripper_joints": 0,
+    "robot_source": null
+  },
+  "objects": [
+    {
+      "id": "cube",
+      "shape": "box",
+      "size_m": [
+        0.03,
+        0.03,
+        0.03
+      ],
+      "mass_kg": 0.2,
+      "start_m": [
+        -0.127428596,
+        0.019985557,
+        0.78
+      ],
+      "end_m": [
+        -0.127429,
+        0.019986,
+        0.429996
+      ],
+      "max_height_m": 0.78
+    },
+    {
+      "id": "ball",
+      "shape": "sphere",
+      "size_m": [
+        0.035
+      ],
+      "mass_kg": 0.15,
+      "start_m": [
+        0.02,
+        -0.05,
+        0.935
+      ],
+      "end_m": [
+        0.02,
+        -0.05,
+        0.434983
+      ],
+      "max_height_m": 0.935
+    },
+    {
+      "id": "can",
+      "shape": "cylinder",
+      "size_m": [
+        0.03,
+        0.05
+      ],
+      "mass_kg": 0.3,
+      "start_m": [
+        0.132958522,
+        0.06856422,
+        0.7
+      ],
+      "end_m": [
+        0.132959,
+        0.068564,
+        0.449996
+      ],
+      "max_height_m": 0.7
+    }
+  ],
+  "events": [
+    {
+      "t": 0.0,
+      "type": "release"
+    },
+    {
+      "t": 0.228,
+      "type": "impact",
+      "object": "can",
+      "on": "table",
+      "speed_m_s": 2.21706
+    },
+    {
+      "t": 0.27,
+      "type": "impact",
+      "object": "cube",
+      "on": "table",
+      "speed_m_s": 2.62908
+    },
+    {
+      "t": 0.318,
+      "type": "rest",
+      "object": "can"
+    },
+    {
+      "t": 0.322,
+      "type": "impact",
+      "object": "ball",
+      "on": "table",
+      "speed_m_s": 3.1392
+    },
+    {
+      "t": 0.45,
+      "type": "rest",
+      "object": "cube"
+    },
+    {
+      "t": 0.464,
+      "type": "rest",
+      "object": "ball"
+    }
+  ],
+  "contacts": {
+    "pairs": [
+      {
+        "bodies": [
+          "can",
+          "table"
+        ],
+        "first_t": 0.228,
+        "max_normal_N": 401.891532,
+        "max_t": 0.228
+      },
+      {
+        "bodies": [
+          "cube",
+          "table"
+        ],
+        "first_t": 0.27,
+        "max_normal_N": 339.059117,
+        "max_t": 0.27
+      },
+      {
+        "bodies": [
+          "ball",
+          "table"
+        ],
+        "first_t": 0.322,
+        "max_normal_N": 287.567925,
+        "max_t": 0.322
+      }
+    ],
+    "max_normal_N": 401.891532,
+    "max_pair": [
+      "can",
+      "table"
+    ],
+    "max_t": 0.228
+  },
+  "actuators": [],
+  "plan": {
+    "unreachable": [],
+    "ends_at_s": 0.0,
+    "cut_short": false
+  },
+  "warnings": [],
+  "task": {
+    "name": "drop",
+    "objects": 3,
+    "at_rest": [
+      "cube",
+      "ball",
+      "can"
+    ],
+    "max_speed_m_s": {
+      "cube": 2.62908,
+      "ball": 3.1392,
+      "can": 2.21706
+    },
+    "success": true,
+    "reason": "all 3 objects came to rest"
+  },
+  "trajectory_sha256": "e765c14cc3a7a0c30174ed6f1ac988581641564490f3ca051e66780b33f5aadd"
+}
